@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS Artist_Genre(
 CREATE TABLE IF NOT EXISTS Album(
     id SERIAL PRIMARY KEY,
     album_name VARCHAR(60) NOT NULL
-    release_year INTEGER NOT NULL
+    release_year INTEGER NOT NULL CHECK (release_year > 1950)
 )
 
 #теперь создадим промежуточную таблицу которая содержит исполинителей и их алюбомы с годом выпуска
@@ -36,13 +36,20 @@ CREATE TABLE IF NOT EXISTS Track(
     id SERIAL PRIMARY KEY,
     album_id SERIAL NOT NULL REFERENCES Album(id),
     track_name VARCHAR(60) NOT NULL,
-    lenght VARCHAR(20) NOT NULL
+    lenght INTEGER NOT NULL CHECK (lenght < 300)
 )
 
-#данная промежуточная таблица будет сборником, в которой хранятся треки и альбом к которому они принадлежат
+#данная таблица будет сборником, в которой хранятся треки и альбом к которому они принадлежат
 CREATE TABLE IF NOT EXISTS Collection(
     id SERIAL PRIMARY KEY,
     collection_name VARCHAR(60) NOT NULL,
-    release_year INTEGER NOT NULL,
+    release_year INTEGER NOT NULL CHECK (release_year > 2020),
     track_id SERIAL NOT NULL REFERENCES Track(id),
+)
+
+#в промежуточной таблице будут храниться название сборника и трек, который к нему принадлежит
+CREATE TABLE IF NOT EXISTS Collection_Track(
+    id SERIAL PRIMARY KEY,
+    id_collection SERIAL NOT NULL REFERENCES Collection(id),
+    id_track SERIAL NOT NULL REFERENCES Track(id)
 )
