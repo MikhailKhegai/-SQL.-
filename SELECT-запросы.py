@@ -2,8 +2,7 @@
 #1. Название и продолжительность самого длительного трека
 SELECT track_name, lenght
 FROM Track
-ORDER BY lenght DESC
-LIMIT 1
+WHERE lenght = (SELECT max(lenght) FROM track)
 
 #2 Название треков, продолжительность которых не менее 3,5 минут
 SELECT track_name, lenght
@@ -49,8 +48,11 @@ select name, album_name, release_year
 from artist_album aa
 join artist a on a.id = aa.artist_id
 join album al on al.id = aa.album_id
-group by a.name, al.album_name, al.release_year
-having al.release_year != 2020
+where name != (select name
+from artist a
+join artist_album aa on a.id = aa.artist_id
+join album al on al.id = aa.album_id
+where release_year = 2020)
 
 #5 Названия сборников, в которых присутствует конкретный исполнитель ('Eminem')
 select c.collection_name , ar.name, t.track_name
@@ -60,8 +62,7 @@ join track t on t.id = ct.id_track
 join album al on al.id = t.album_id
 join artist_album aa on aa.album_id = al.id
 join artist ar on ar.id = aa.artist_id
-group by c.collection_name, ar.name, t.track_name
-having ar.name = 'Eminem'
+where name = 'Eminem'
 
 #Задание 4
 #1 Названия альбомов, в которых присутствуют исполнители более чем одного жанра
@@ -78,9 +79,10 @@ having count(ag.genre_id) > 1
 select t.track_name, ct.id_collection
 from track t
 left join collection_track ct on ct.id_track = t.id
-group by ct.id_collection, t.track_name
-order by ct.id_collection desc
-limit 6
+where track_name not in (select t.track_name
+from track t
+join collection_track ct on ct.id_track = t.id)
+group by t.track_name, ct.id_collection
 
 #3 Исполнитель или исполнители, написавшие самый короткий по продолжительности трек, — теоретически таких треков может быть несколько
 select name, min(t.lenght)
@@ -88,14 +90,19 @@ from artist a
 join artist_album aa on aa.artist_id = a.id
 join album al on al.id = aa.album_id
 join track t on t.album_id  = al.id
-group by name
-order by min(t.lenght)
-limit 1
+group by name, t.lenght
+having t.lenght in (select min(lenght)
+from track)
 
 #4 Названия альбомов, содержащих наименьшее количество треков
 select a.album_name, count(t.track_name)
 from album a
 join track t on t.album_id = a.id
 group by a.album_name
+having count(t.track_name) in (select count(t.track_name)
+from track t
+join album a on t.album_id = a.id
+group by a.album_name
 order by count(t.track_name)
-limit 1
+limit 1)
+order by count(t.track_name)
